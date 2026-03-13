@@ -64,7 +64,7 @@ async function saveOrderToSupabase(orderData) {
         customer_phone: orderData.customerPhone,
         order_type: orderData.orderType,
         subtotal: orderData.subtotal,
-        tax: orderData.tax,
+        gst: orderData.tax,
         service_fee: orderData.serviceFee,
         total: orderData.total,
         status: 'confirmed'

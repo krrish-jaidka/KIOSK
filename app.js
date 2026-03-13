@@ -114,7 +114,7 @@ function updateCartBadge() {
   const barTax = document.getElementById('bar-cart-tax');
   if (barCount) barCount.textContent = total;
   if (barTotal) barTotal.textContent = '₹' + getSubtotal().toFixed(2);
-  if (barTax) barTax.textContent = '+ ₹' + getTax().toFixed(2) + ' Tax';
+  if (barTax) barTax.textContent = '+ ₹' + getTax().toFixed(2) + ' GST';
 }
 
 // ── Cart Helpers ──

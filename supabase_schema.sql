@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS orders (
   customer_phone TEXT NOT NULL,
   order_type TEXT NOT NULL CHECK (order_type IN ('dine-in', 'takeaway')),
   subtotal NUMERIC(10,2) NOT NULL,
-  tax NUMERIC(10,2) NOT NULL,
+  gst NUMERIC(10,2) NOT NULL,
   service_fee NUMERIC(10,2) DEFAULT 30.00,
   total NUMERIC(10,2) NOT NULL,
   status TEXT DEFAULT 'confirmed' CHECK (status IN ('confirmed', 'preparing', 'ready', 'completed', 'cancelled')),
