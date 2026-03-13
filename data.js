@@ -297,7 +297,7 @@ const MENU_DATA = [
     name: 'Family Feast',
     description: '4 Classic Burgers, 2 large fries, 4 drinks, and 4 cookies — feeds the whole family.',
     price: 1499,
-    image: 'https://images.unsplash.com/photo-1588661858525-46eb53c150fc?auto=format&fit=crop&q=80&w=800&h=600',
+    image: 'https://images.unsplash.com/photo-1565299585323-38d5b7337cac?auto=format&fit=crop&q=80&w=800&h=600',
     category: 'Combo Meals',
     rating: 4.8,
     tags: ['Best Value'],
