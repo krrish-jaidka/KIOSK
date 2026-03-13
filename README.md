@@ -19,10 +19,11 @@ The backend is powered by **Supabase (PostgreSQL)**, which stores and serves the
 |---|---|
 | 🛒 **Full Cart System** | Add items, adjust quantities, remove items |
 | 🎛️ **Item Customization** | Dynamic add-ons with live price updates (e.g., +₹40 Extra Cheese) |
+| 📝 **Special Instructions** | Add a note per item ("less spicy", "no onions", "extra sauce") |
 | 🏷️ **Promo Codes** | `WELCOME10`, `FESTIVE20`, `FLAT50` discount codes |
 | 💳 **Payment Simulation** | Cash, UPI, Card, Loyalty Points, Pay at Counter |
 | ☁️ **Supabase Backend** | Live menu from PostgreSQL, orders saved to cloud  |
-| 📋 **Order History** | Every order is persisted with itemized breakdown |
+| 📋 **Order History** | Every order is persisted with itemized breakdown and notes |
 | 📱 **Responsive Design** | Works on desktop, tablet, and mobile |
 | ⚡ **SPA Routing** | Instant page transitions using hash routing |
 | 🎨 **Premium UI** | Micro-animations, glassmorphism, Material Icons |

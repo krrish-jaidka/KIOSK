@@ -194,15 +194,15 @@ function getSubtotal() {
 function getTax() { return (getSubtotal() - getDiscount()) * TAX_RATE; }
 function getTotal() { return Math.max(0, getSubtotal() - getDiscount() + getTax() + SERVICE_FEE); }
 
-function addToCart(itemId, customizations = []) {
+function addToCart(itemId, customizations = [], note = '') {
   const menuItem = MENU_DATA.find(m => m.id === itemId);
   if (!menuItem) return;
 
-  // Check if same item with same customizations exists
+  // Items with different notes are treated as separate cart entries
   const custKey = customizations.map(c => c.name).sort().join(',');
   const existing = cart.find(c => {
     const ck = (c.selectedCustomizations || []).map(x => x.name).sort().join(',');
-    return c.id === itemId && ck === custKey;
+    return c.id === itemId && ck === custKey && (c.note || '') === note;
   });
 
   if (existing) {
@@ -212,6 +212,7 @@ function addToCart(itemId, customizations = []) {
       ...menuItem,
       quantity: 1,
       selectedCustomizations: customizations,
+      note: note,
       cartId: Date.now() + Math.random()
     });
   }
@@ -275,7 +276,7 @@ function openCustomizeModal(itemId) {
           Customize Your Order
         </h4>
         <div class="space-y-3" id="customization-options">
-          ${item.customizations.map((c, i) => `
+          ${item.customizations.length === 0 ? '<p class="text-slate-400 text-sm py-2">No add-ons available for this item.</p>' : item.customizations.map((c, i) => `
             <label class="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-primary/5 transition-colors cursor-pointer border border-transparent hover:border-primary/20">
               <div class="flex items-center gap-3">
                 <input type="checkbox" value="${i}" class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary cust-check" />
@@ -284,6 +285,19 @@ function openCustomizeModal(itemId) {
               <span class="text-sm font-semibold ${c.price > 0 ? 'text-primary' : 'text-green-600'}">${c.price > 0 ? '+₹' + c.price.toFixed(2) : 'Free'}</span>
             </label>
           `).join('')}
+        </div>
+        <!-- Special Instructions -->
+        <div class="mt-4">
+          <label class="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2">
+            <span class="material-symbols-outlined text-base text-primary">edit_note</span>
+            Special Instructions
+          </label>
+          <textarea
+            id="special-note-input"
+            placeholder="E.g. Less spicy, no onions, extra sauce on the side..."
+            rows="2"
+            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder-slate-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none transition-all"
+          ></textarea>
         </div>
         <!-- Price & Add Button -->
         <div class="mt-6 flex items-center justify-between">
@@ -313,8 +327,10 @@ function addWithCustomizations(itemId) {
 
   const checks = document.querySelectorAll('#customization-options .cust-check:checked');
   const selected = Array.from(checks).map(ch => item.customizations[parseInt(ch.value)]);
+  const noteInput = document.getElementById('special-note-input');
+  const note = noteInput ? noteInput.value.trim() : '';
 
-  addToCart(itemId, selected);
+  addToCart(itemId, selected, note);
   closeCustomizeModal();
 }
 
@@ -465,6 +481,7 @@ function renderCart() {
             </button>
           </div>
           ${custText ? `<p class="text-xs text-slate-400 mt-0.5 truncate">${custText}</p>` : ''}
+          ${item.note ? `<p class="text-xs mt-0.5 flex items-center gap-1 text-amber-600 font-medium"><span class="material-symbols-outlined text-sm">edit_note</span>${item.note}</p>` : ''}
           <p class="text-primary font-semibold mt-1">₹${item.price.toFixed(2)}${customExtra > 0 ? ` <span class="text-xs text-slate-400">+ ₹${customExtra.toFixed(2)}</span>` : ''}</p>
           <div class="flex items-center justify-between mt-3">
             <div class="flex items-center gap-3 bg-slate-50 p-1 rounded-full border border-primary/10">
@@ -818,6 +835,7 @@ function renderConfirmation() {
             <div>
               <h3 class="font-bold text-slate-800">${item.name}</h3>
               ${custText ? `<p class="text-xs text-slate-400">${custText}</p>` : ''}
+              ${item.note ? `<p class="text-xs text-amber-600 font-medium flex items-center gap-1"><span class="material-symbols-outlined text-sm">edit_note</span>${item.note}</p>` : ''}
               <p class="text-sm text-slate-400">Qty: ${item.quantity}</p>
             </div>
           </div>

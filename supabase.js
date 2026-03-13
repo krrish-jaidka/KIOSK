@@ -86,6 +86,7 @@ async function saveOrderToSupabase(orderData) {
       item_price: item.price,
       quantity: item.quantity,
       customizations: item.selectedCustomizations || [],
+      note: item.note || '',
       line_total: (item.price + (item.selectedCustomizations || []).reduce((s, c) => s + c.price, 0)) * item.quantity
     }));
 
