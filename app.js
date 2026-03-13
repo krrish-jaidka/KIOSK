@@ -37,6 +37,19 @@ window.addEventListener('hashchange', () => {
   navigateTo(page);
 });
 
+// ── Image Overrides (guaranteed-local fallback) ──
+// These override whatever Supabase returns for items with broken CDN images.
+const IMAGE_OVERRIDES = {
+  'b2':  'images/b2.png',
+  'bv1': 'images/bv1.png',
+  'd1':  'images/d1.png',
+  'd3':  'images/d3.png',
+  'p4':  'images/p4.png',
+  'c1':  'images/c1.png',
+  'c3':  'images/c3.png',
+  'c4':  'images/c4.png',
+};
+
 window.addEventListener('DOMContentLoaded', async () => {
   // Initialize Supabase and try loading menu from DB
   const supabaseReady = initSupabase();
@@ -48,6 +61,8 @@ window.addEventListener('DOMContentLoaded', async () => {
       dbMenu.forEach(item => {
         MENU_DATA.push({
           ...item,
+          // Apply local image override if one exists for this item
+          image: IMAGE_OVERRIDES[item.id] || item.image,
           price: parseFloat(item.price),
           rating: parseFloat(item.rating),
           tags: item.tags || [],
@@ -58,6 +73,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     } else {
       console.log('ℹ️ Using local menu data (run supabase_schema.sql to seed DB)');
     }
+  } else {
+    // Also apply overrides to local data
+    MENU_DATA.forEach(item => {
+      if (IMAGE_OVERRIDES[item.id]) item.image = IMAGE_OVERRIDES[item.id];
+    });
   }
 
   const page = window.location.hash.slice(1) || 'home';
@@ -237,7 +257,8 @@ function openCustomizeModal(itemId) {
     <div class="bg-white rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-2xl modal-content">
       <!-- Image -->
       <div class="relative h-48 overflow-hidden">
-        <div class="absolute inset-0 bg-center bg-no-repeat bg-cover" style="background-image: url('${item.image}')"></div>
+        <img src="${item.image}" alt="${item.name}" class="absolute inset-0 w-full h-full object-cover"
+          onerror="this.onerror=null;this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#1e293b,#334155)';" />
         <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
         <button onclick="closeCustomizeModal()" class="absolute top-3 right-3 bg-white/90 backdrop-blur rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-white transition-colors">
           <span class="material-symbols-outlined text-lg">close</span>
@@ -366,7 +387,11 @@ function renderMenu() {
     return `
       <div class="menu-card group flex flex-col bg-white rounded-xl overflow-hidden shadow-sm border border-slate-100">
         <div class="relative overflow-hidden aspect-[4/3] cursor-pointer" onclick="openCustomizeModal('${item.id}')">
-          <div class="absolute inset-0 bg-center bg-no-repeat bg-cover card-img transition-transform duration-300 group-hover:scale-105" style="background-image: url('${item.image}')"></div>
+          <img
+            src="${item.image}"
+            alt="${item.name}"
+            class="absolute inset-0 w-full h-full object-cover card-img transition-transform duration-300 group-hover:scale-105"
+            onerror="this.onerror=null;this.src='';this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#f1f5f9,#e2e8f0)';this.parentElement.insertAdjacentHTML('afterbegin','<span class=\'material-symbols-outlined\' style=\'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:48px;color:#94a3b8;\'>restaurant</span>');" />
           ${tagHTML}
           <div class="absolute top-3 right-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
             <span class="material-symbols-outlined text-yellow-500 text-sm" style="font-variation-settings: 'FILL' 1">star</span>
@@ -428,7 +453,10 @@ function renderCart() {
 
     return `
       <div class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-primary/5 transition-all hover:shadow-md">
-        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-lg w-20 h-20 shrink-0" style="background-image: url('${item.image}')"></div>
+        <div class="relative rounded-lg w-20 h-20 shrink-0 overflow-hidden bg-slate-100">
+          <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover"
+            onerror="this.onerror=null;this.style.display='none';this.parentElement.innerHTML='<span class=\'material-symbols-outlined\' style=\'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;color:#94a3b8;\'>restaurant</span>';" />
+        </div>
         <div class="flex flex-1 flex-col justify-center min-w-0">
           <div class="flex justify-between items-start">
             <p class="text-lg font-bold leading-tight truncate">${item.name}</p>

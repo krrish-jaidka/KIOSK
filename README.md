@@ -1,90 +1,127 @@
-## 📖 Overview
+# 🍔 The Digital Grill — Self-Service Kiosk
 
-**The Digital Grill** is a lightning-fast, highly interactive Single Page Application (SPA) designed to replicate the sleek, frictionless touchscreen kiosks used in modern fast-casual restaurants (like McDonald's or Taco Bell).
-
-Built with **pure Vanilla JavaScript** and **TailwindCSS**, it features a beautiful animated interface, dynamic item customizations, a fully functioning cart system, and real-time integration with **Supabase** for live menu syncing and order storage.
+> A premium self-service restaurant ordering kiosk built with Vanilla JavaScript and Supabase.  
+> Inspired by modern fast-casual kiosks like McDonald's, Taco Bell, and Zomato Kiosk.
 
 ---
 
-## ✨ Key Features
+## 📖 Overview
 
-- **📱 True Kiosk Experience:** No login, no sign-up. Customers walk up, tap, and order.
-- **⚡ Single Page Application (SPA):** Seamless, instant transitions between the Menu, Cart, Checkout, and Confirmation screens using custom hash routing.
-- **☁️ Supabase PostgreSQL Backend:**
-  - **Live Menu:** Fetches all 20 menu items directly from the database on startup.
-  - **Order Logging:** Saves completed orders (including custom add-ons and dynamic pricing) to the cloud.
-- **🎨 Premium UI/UX:** High-resolution food imagery, smooth micro-animations (hovering cards, pulsing cart badges), glassmorphic elements, and beautiful Material icons.
-- **🍔 Customization Engine:** Users can select dynamic add-ons (e.g., +₹40 for Extra Cheese) directly from an animated modal.
-- **💳 Payment Simulation:** A beautifully designed loading state simulates credit card processing.
-- **📱 Responsive Layout:** Converts the Category Sidebar into a native-feeling horizontal scroll bar on mobile devices to save screen space.
+**The Digital Grill** is a fully-functional, cloud-connected **Single Page Application (SPA)** that simulates a real restaurant self-ordering kiosk. Customers can browse the menu, customize their items, apply promo codes, choose a payment method, and receive an order confirmation — all without reloading the page.
+
+The backend is powered by **Supabase (PostgreSQL)**, which stores and serves the live menu and persists completed orders in real-time.
+
+---
+
+## ✨ Features
+
+| Feature | Description |
+|---|---|
+| 🛒 **Full Cart System** | Add items, adjust quantities, remove items |
+| 🎛️ **Item Customization** | Dynamic add-ons with live price updates (e.g., +₹40 Extra Cheese) |
+| 🏷️ **Promo Codes** | `WELCOME10`, `FESTIVE20`, `FLAT50` discount codes |
+| 💳 **Payment Simulation** | Cash, UPI, Card, Loyalty Points, Pay at Counter |
+| ☁️ **Supabase Backend** | Live menu from PostgreSQL, orders saved to cloud  |
+| 📋 **Order History** | Every order is persisted with itemized breakdown |
+| 📱 **Responsive Design** | Works on desktop, tablet, and mobile |
+| ⚡ **SPA Routing** | Instant page transitions using hash routing |
+| 🎨 **Premium UI** | Micro-animations, glassmorphism, Material Icons |
 
 ---
 
 ## 🛠️ Tech Stack
 
-<details>
-<summary>Click to view the technologies used in this project</summary>
-
-- **Frontend Core:** HTML5, CSS3, ES6+ JavaScript (Vanilla)
-- **Styling:** TailwindCSS (via CDN) + Custom utility CSS
-- **Backend / Database:** [Supabase](https://supabase.com/) & PostgreSQL
-- **Database Client:** `@supabase/supabase-js`
-- **Iconography:** Google Material Symbols (Outlined)
-- **Local Dev Server:** Node.js `serve` package
-
-</details>
+- **Frontend:** HTML5, CSS3, Vanilla ES6+ JavaScript
+- **Styling:** TailwindCSS (CDN) + Custom CSS (`styles.css`)
+- **Backend:** [Supabase](https://supabase.com/) — PostgreSQL database
+- **Icons:** Google Material Symbols
+- **Local Server:** Node.js `serve`
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Running Locally
 
-To run this Digital Kiosk locally, you'll need the database schema loaded into your Supabase project and a local server to handle the JavaScript ES modules.
+### 1. Clone the Repository
 
-### Prerequisites
+```bash
+git clone https://github.com/YOUR_USERNAME/KIOSK.git
+cd KIOSK
+```
 
-1.  [Node.js](https://nodejs.org/) installed on your machine.
-2.  A free account on [Supabase](https://supabase.com/).
+### 2. Set Up the Database
 
-### Setup Instructions
+The Supabase project is already configured with a live connection. However, if you want to run your own instance:
 
-#### 1. Configure the Database
-- Log in to your Supabase project dashboard.
-- Navigate to the **SQL Editor**.
-- Copy the entire contents of the `supabase_schema.sql` file provided in this repository.
-- Paste it into a new query and click **Run**.
-  _This will automatically generate the `menu_items`, `orders`, and `order_items` tables, apply public access policies, and seed the menu with 20 items (prices in INR)._
+1. Create a free project at [supabase.com](https://supabase.com)
+2. Open the **SQL Editor** in your Supabase dashboard
+3. Paste and run the contents of `supabase_schema.sql`  
+   _(This creates the tables and seeds the full menu with 20 items)_
+4. Update `SUPABASE_URL` and `SUPABASE_ANON_KEY` in `supabase.js`
 
-#### 2. Run the Kiosk Locally
-- Clone or download this repository to your local machine.
-- Open your terminal and navigate to the project directory:
-  ```bash
-  cd path/to/kiosk-folder
-  ```
-- Start a local development server using `npx`:
-  ```bash
-  npx serve .
-  ```
-- Your terminal will output a local network address (typically `http://localhost:3000`).
-- Open that URL in your favorite web browser and start ordering! 🎉
+### 3. Start the Local Server
+
+```bash
+npx serve .
+```
+
+Open **[http://localhost:3000](http://localhost:3000)** in your browser.
+
+> No `npm install` needed — the project uses CDN libraries only.
 
 ---
 
-## 📁 Folder Structure
+## 📁 Project Structure
 
-```text
-📦 Kiosk Project
- ┣ 📜 index.html           # The main entry layout and structural UI
- ┣ 📜 styles.css           # Custom CSS (animations, components, scrollbars)
- ┣ 📜 app.js               # SPA router logic, Cart state, UI rendering functions
- ┣ 📜 data.js              # Fallback menu dataset (loaded if Supabase fails)
- ┣ 📜 supabase.js          # Supabase client config and database fetch/insert functions
- ┣ 📜 supabase_schema.sql  # SQL definitions for the PostgreSQL backend
- ┣ 📜 package.json         # Simple script configuration for local dev
- ┗ 📜 README.md            # This documentation file
+```
+📦 KIOSK/
+ ┣ 📜 index.html          — Page layout, all screens (Home, Menu, Cart, Checkout, Confirmation)
+ ┣ 📜 app.js              — SPA router, cart logic, all UI rendering functions
+ ┣ 📜 data.js             — Local fallback menu (used if Supabase is unavailable)
+ ┣ 📜 supabase.js         — Supabase client + fetch/insert helpers
+ ┣ 📜 styles.css          — Custom animations, card styles, scrollbars
+ ┣ 📜 supabase_schema.sql — PostgreSQL table definitions + seed data
+ ┣ 📜 package.json        — Dev server script
+ ┗ 📁 images/             — Local food images (fallback for CDN-blocked photos)
 ```
 
 ---
 
+## 🗄️ Database Schema
+
+Three tables in Supabase PostgreSQL:
+
+| Table | Purpose |
+|---|---|
+| `menu_items` | Stores all 20 menu items with pricing, images, and customizations |
+| `orders` | Records each completed order with customer info and totals |
+| `order_items` | Line-item breakdown for each order |
+
+Row-Level Security (RLS) is enabled — public read for menu, public insert for orders.
+
+---
+
+## 🎯 How It Works
+
+1. **On load** — App connects to Supabase and fetches the live menu
+2. **Menu page** — Items rendered dynamically, filterable by category or search
+3. **Item click** — Opens customization modal with add-on checkboxes and live price preview
+4. **Cart** — Persists in memory, supports promo code discounts (5% GST + ₹30 service fee applied)
+5. **Checkout** — Customer fills name, phone, selects dine-in or takeaway
+6. **Payment** — Simulated processing screen with animated progress bar
+7. **Confirmation** — Order number displayed, order saved to Supabase
+
+---
+
+## 🏷️ Promo Codes
+
+| Code | Discount |
+|---|---|
+| `WELCOME10` | 10% off subtotal |
+| `FESTIVE20` | 20% off subtotal |
+| `FLAT50` | Flat ₹50 off |
+
+---
+
 <div align="center">
-  <p><i>Taste the future of ordering. Developed with ❤️ and Vanilla JS.</i></p>
+  <p><i>Built with ❤️ using Vanilla JS + Supabase</i></p>
 </div>
