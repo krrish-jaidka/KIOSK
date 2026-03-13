@@ -118,6 +118,52 @@ function updateCartBadge() {
 }
 
 // ── Cart Helpers ──
+let currentPromo = null;
+const VALID_PROMOS = {
+  'WELCOME10': 0.10, // 10% off
+  'FESTIVE20': 0.20, // 20% off
+  'FLAT50': 50 // Flat 50 off
+};
+
+function applyPromoCode() {
+  const input = document.getElementById('promo-code-input');
+  const msg = document.getElementById('promo-message');
+  if (!input || !msg) return;
+
+  const code = input.value.trim().toUpperCase();
+  if (!code) {
+    currentPromo = null;
+    msg.textContent = 'Please enter a code';
+    msg.className = 'text-xs font-bold mt-2 text-red-500 block';
+    renderCart();
+    return;
+  }
+
+  if (VALID_PROMOS[code]) {
+    currentPromo = { code, value: VALID_PROMOS[code] };
+    msg.textContent = `Promo code '${code}' applied successfully!`;
+    msg.className = 'text-xs font-bold mt-2 text-green-600 block';
+    input.value = '';
+    renderCart();
+    showToast(`Promo '${code}' applied!`);
+  } else {
+    currentPromo = null;
+    msg.textContent = 'Invalid promo code';
+    msg.className = 'text-xs font-bold mt-2 text-red-500 block';
+    renderCart();
+  }
+}
+
+function getDiscount() {
+  if (!currentPromo) return 0;
+  const subtotal = getSubtotal();
+  if (currentPromo.value < 1) { // Percentage discount
+    return subtotal * currentPromo.value;
+  }
+  // Flat discount
+  return Math.min(subtotal, currentPromo.value);
+}
+
 function getSubtotal() {
   return cart.reduce((sum, item) => {
     const customExtra = (item.selectedCustomizations || [])
@@ -125,8 +171,8 @@ function getSubtotal() {
     return sum + (item.price + customExtra) * item.quantity;
   }, 0);
 }
-function getTax() { return getSubtotal() * TAX_RATE; }
-function getTotal() { return getSubtotal() + getTax() + SERVICE_FEE; }
+function getTax() { return (getSubtotal() - getDiscount()) * TAX_RATE; }
+function getTotal() { return Math.max(0, getSubtotal() - getDiscount() + getTax() + SERVICE_FEE); }
 
 function addToCart(itemId, customizations = []) {
   const menuItem = MENU_DATA.find(m => m.id === itemId);
@@ -319,8 +365,8 @@ function renderMenu() {
 
     return `
       <div class="menu-card group flex flex-col bg-white rounded-xl overflow-hidden shadow-sm border border-slate-100">
-        <div class="relative overflow-hidden aspect-[4/3]">
-          <div class="absolute inset-0 bg-center bg-no-repeat bg-cover card-img" style="background-image: url('${item.image}')"></div>
+        <div class="relative overflow-hidden aspect-[4/3] cursor-pointer" onclick="openCustomizeModal('${item.id}')">
+          <div class="absolute inset-0 bg-center bg-no-repeat bg-cover card-img transition-transform duration-300 group-hover:scale-105" style="background-image: url('${item.image}')"></div>
           ${tagHTML}
           <div class="absolute top-3 right-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
             <span class="material-symbols-outlined text-yellow-500 text-sm" style="font-variation-settings: 'FILL' 1">star</span>
@@ -412,15 +458,45 @@ function renderCart() {
   // Update summary
   if (summary) {
     const sub = getSubtotal();
+    const discount = getDiscount();
     const tax = getTax();
     const total = getTotal();
     const itemCount = cart.reduce((s, i) => s + i.quantity, 0);
 
+    let summaryHtml = `
+      <div class="flex justify-between text-slate-600">
+        <span>Subtotal</span>
+        <span id="summary-subtotal" class="font-medium">₹${sub.toFixed(2)}</span>
+      </div>`;
+      
+    if (discount > 0) {
+      summaryHtml += `
+      <div class="flex justify-between text-green-600 font-medium">
+        <span>Discount (${currentPromo.code})</span>
+        <span>-₹${discount.toFixed(2)}</span>
+      </div>`;
+    }
+
+    summaryHtml += `
+      <div class="flex justify-between text-slate-600">
+        <span>GST (5%)</span>
+        <span id="summary-tax" class="font-medium">₹${tax.toFixed(2)}</span>
+      </div>
+      <div class="flex justify-between text-slate-600">
+        <span>Service Fee</span>
+        <span id="summary-fee" class="font-medium">₹${SERVICE_FEE.toFixed(2)}</span>
+      </div>
+      <div class="pt-4 mt-2 border-t border-dashed border-slate-200 flex justify-between items-center">
+        <span class="text-lg font-bold">Total Amount</span>
+        <span id="summary-total" class="text-2xl font-black text-primary">₹${total.toFixed(2)}</span>
+      </div>
+    `;
+    
+    // Replace the space-y-3 div content
+    const spaceYDiv = summary.querySelector('.space-y-3');
+    if (spaceYDiv) spaceYDiv.innerHTML = summaryHtml;
+
     document.getElementById('cart-header-count').textContent = `${itemCount} item${itemCount !== 1 ? 's' : ''} in cart`;
-    document.getElementById('summary-subtotal').textContent = `₹${sub.toFixed(2)}`;
-    document.getElementById('summary-tax').textContent = `₹${tax.toFixed(2)}`;
-    document.getElementById('summary-fee').textContent = `₹${SERVICE_FEE.toFixed(2)}`;
-    document.getElementById('summary-total').textContent = `₹${total.toFixed(2)}`;
   }
 }
 
@@ -521,21 +597,36 @@ function showPaymentSimulation() {
       </div>
       <div class="px-6 pb-6 space-y-2" id="payment-methods-list">
         ${paymentMethods.map(m => `
-          <button onclick="selectPaymentMethod('${m.id}')" id="pm-${m.id}"
-            class="payment-method-btn w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all duration-200
-              ${m.id === 'cash' ? 'border-primary bg-primary/5 shadow-sm' : 'border-slate-100 hover:border-primary/30 hover:bg-primary/5'}">
-            <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0
-              ${m.id === 'cash' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600'}">
-              <span class="material-symbols-outlined text-2xl">${m.icon}</span>
-            </div>
-            <div class="text-left flex-1">
-              <p class="font-bold text-slate-900">${m.name}</p>
-              <p class="text-xs text-slate-400">${m.desc}</p>
-            </div>
-            <div class="pm-check shrink-0 ${m.id === 'cash' ? '' : 'opacity-0'}">
-              <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1">check_circle</span>
-            </div>
-          </button>
+          <div class="flex flex-col gap-2">
+            <button onclick="selectPaymentMethod('${m.id}')" id="pm-${m.id}"
+              class="payment-method-btn w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all duration-200
+                ${m.id === 'cash' ? 'border-primary bg-primary/5 shadow-sm' : 'border-slate-100 hover:border-primary/30 hover:bg-primary/5'}">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0
+                ${m.id === 'cash' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600'}">
+                <span class="material-symbols-outlined text-2xl">${m.icon}</span>
+              </div>
+              <div class="text-left flex-1">
+                <p class="font-bold text-slate-900">${m.name}</p>
+                <p class="text-xs text-slate-400">${m.desc}</p>
+              </div>
+              <div class="pm-check shrink-0 ${m.id === 'cash' ? '' : 'opacity-0'}">
+                <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1">check_circle</span>
+              </div>
+            </button>
+            ${m.id === 'upi' ? `
+              <div id="pm-details-upi" class="hidden overflow-hidden transition-all duration-300 px-1 py-1">
+                <input type="text" placeholder="Enter UPI ID (e.g. name@okhdfcbank)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm font-medium">
+              </div>
+            ` : m.id === 'card' ? `
+              <div id="pm-details-card" class="hidden overflow-hidden transition-all duration-300 px-1 py-1 space-y-2">
+                <input type="text" placeholder="Card Number" maxlength="19" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm font-medium">
+                <div class="flex gap-2">
+                  <input type="text" placeholder="MM/YY" maxlength="5" class="w-1/2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm font-medium">
+                  <input type="password" placeholder="CVV" maxlength="3" class="w-1/2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm font-medium">
+                </div>
+              </div>
+            ` : ''}
+          </div>
         `).join('')}
       </div>
       <div class="px-6 pb-6">
@@ -570,6 +661,16 @@ function selectPaymentMethod(methodId) {
     const check = btn.querySelector('.pm-check');
     if (check) {
       check.style.opacity = isSelected ? '1' : '0';
+    }
+    
+    // Toggle details section
+    const detailsDiv = document.getElementById(`pm-details-${id}`);
+    if (detailsDiv) {
+      if (isSelected) {
+        detailsDiv.classList.remove('hidden');
+      } else {
+        detailsDiv.classList.add('hidden');
+      }
     }
   });
 }

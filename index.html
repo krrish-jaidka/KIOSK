@@ -248,6 +248,17 @@
                   <span class="material-symbols-outlined text-primary">receipt_long</span>
                   Order Summary
                 </h3>
+
+                <!-- Promo Code Section -->
+                <div class="mb-4">
+                  <div class="flex gap-2">
+                    <input type="text" id="promo-code-input" placeholder="Enter Promo Code"
+                      class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium uppercase tracking-wider text-sm">
+                    <button onclick="applyPromoCode()" id="apply-promo-btn"
+                      class="bg-slate-900 text-white px-6 rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors">Apply</button>
+                  </div>
+                  <p id="promo-message" class="text-xs font-bold mt-2 hidden"></p>
+                </div>
                 <div class="space-y-3">
                   <div class="flex justify-between text-slate-600">
                     <span>Subtotal</span>
