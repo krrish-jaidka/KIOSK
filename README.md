@@ -120,9 +120,3 @@ Row-Level Security (RLS) is enabled — public read for menu, public insert for 
 | `WELCOME10` | 10% off subtotal |
 | `FESTIVE20` | 20% off subtotal |
 | `FLAT50` | Flat ₹50 off |
-
----
-
-<div align="center">
-  <p><i>Built with ❤️ using Vanilla JS + Supabase</i></p>
-</div>
