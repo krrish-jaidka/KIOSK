@@ -491,30 +491,126 @@ function validateAndConfirm() {
   showPaymentSimulation();
 }
 
+let selectedPaymentMethod = 'cash';
+
 function showPaymentSimulation() {
   const modal = document.getElementById('customize-modal');
   const content = document.getElementById('customize-content');
+
+  const paymentMethods = [
+    { id: 'cash', name: 'Cash', icon: 'payments', desc: 'Pay with cash at pickup' },
+    { id: 'upi', name: 'UPI', icon: 'qr_code_2', desc: 'GPay, PhonePe, Paytm...' },
+    { id: 'card', name: 'Debit / Credit Card', icon: 'credit_card', desc: 'Visa, Mastercard, RuPay' },
+    { id: 'loyalty', name: 'Loyalty Points', icon: 'loyalty', desc: 'Redeem your reward points' },
+    { id: 'counter', name: 'Pay at Counter', icon: 'storefront', desc: 'Pay when you collect your order' }
+  ];
+
+  content.innerHTML = `
+    <div class="bg-white rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-2xl modal-content">
+      <div class="p-6 pb-2">
+        <div class="flex items-center justify-between mb-1">
+          <h3 class="text-xl font-bold flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">account_balance_wallet</span>
+            Choose Payment Method
+          </h3>
+          <button onclick="closeCustomizeModal()" class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors">
+            <span class="material-symbols-outlined text-lg text-slate-500">close</span>
+          </button>
+        </div>
+        <p class="text-slate-500 text-sm mb-4">Total: <span class="font-bold text-primary">₹${getTotal().toFixed(2)}</span></p>
+      </div>
+      <div class="px-6 pb-6 space-y-2" id="payment-methods-list">
+        ${paymentMethods.map(m => `
+          <button onclick="selectPaymentMethod('${m.id}')" id="pm-${m.id}"
+            class="payment-method-btn w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all duration-200
+              ${m.id === 'cash' ? 'border-primary bg-primary/5 shadow-sm' : 'border-slate-100 hover:border-primary/30 hover:bg-primary/5'}">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0
+              ${m.id === 'cash' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600'}">
+              <span class="material-symbols-outlined text-2xl">${m.icon}</span>
+            </div>
+            <div class="text-left flex-1">
+              <p class="font-bold text-slate-900">${m.name}</p>
+              <p class="text-xs text-slate-400">${m.desc}</p>
+            </div>
+            <div class="pm-check shrink-0 ${m.id === 'cash' ? '' : 'opacity-0'}">
+              <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1">check_circle</span>
+            </div>
+          </button>
+        `).join('')}
+      </div>
+      <div class="px-6 pb-6">
+        <button onclick="confirmPaymentMethod()"
+          class="w-full py-4 bg-primary text-white rounded-xl font-bold text-lg shadow-lg shadow-primary/25 hover:translate-y-[-1px] active:translate-y-[0px] transition-all flex items-center justify-center gap-3">
+          <span class="material-symbols-outlined">lock</span>
+          Proceed to Pay
+        </button>
+      </div>
+    </div>
+  `;
+
+  selectedPaymentMethod = 'cash';
+  modal.classList.add('open');
+}
+
+function selectPaymentMethod(methodId) {
+  selectedPaymentMethod = methodId;
+  // Update visual state
+  document.querySelectorAll('.payment-method-btn').forEach(btn => {
+    const id = btn.id.replace('pm-', '');
+    const isSelected = id === methodId;
+    btn.className = `payment-method-btn w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all duration-200
+      ${isSelected ? 'border-primary bg-primary/5 shadow-sm' : 'border-slate-100 hover:border-primary/30 hover:bg-primary/5'}`;
+    // Update icon background
+    const iconDiv = btn.querySelector('.w-12');
+    if (iconDiv) {
+      iconDiv.className = `w-12 h-12 rounded-xl flex items-center justify-center shrink-0
+        ${isSelected ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600'}`;
+    }
+    // Update checkmark
+    const check = btn.querySelector('.pm-check');
+    if (check) {
+      check.style.opacity = isSelected ? '1' : '0';
+    }
+  });
+}
+
+function confirmPaymentMethod() {
+  const modal = document.getElementById('customize-modal');
+  const content = document.getElementById('customize-content');
+
+  const methodNames = {
+    cash: 'Cash',
+    upi: 'UPI',
+    card: 'Debit / Credit Card',
+    loyalty: 'Loyalty Points',
+    counter: 'Pay at Counter'
+  };
+  const methodIcons = {
+    cash: 'payments',
+    upi: 'qr_code_2',
+    card: 'credit_card',
+    loyalty: 'loyalty',
+    counter: 'storefront'
+  };
 
   content.innerHTML = `
     <div class="bg-white rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-2xl modal-content">
       <div class="p-8 flex flex-col items-center text-center">
         <div class="relative mb-6">
           <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
-            <span class="material-symbols-outlined text-primary text-4xl" id="payment-icon">credit_card</span>
+            <span class="material-symbols-outlined text-primary text-4xl" id="payment-icon">${methodIcons[selectedPaymentMethod]}</span>
           </div>
           <div class="absolute inset-0 rounded-full border-4 border-primary/20 shimmer-bg"></div>
         </div>
         <h3 class="text-xl font-bold mb-2" id="payment-title">Processing Payment...</h3>
-        <p class="text-slate-500 text-sm mb-6" id="payment-subtitle">Simulating secure payment</p>
-        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+        <p class="text-slate-500 text-sm mb-1" id="payment-subtitle">${methodNames[selectedPaymentMethod]}</p>
+        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden mt-4">
           <div class="bg-primary h-full rounded-full progress-fill" id="payment-bar"></div>
         </div>
         <p class="text-2xl font-black text-primary mt-4">₹${getTotal().toFixed(2)}</p>
       </div>
     </div>
   `;
-
-  modal.classList.add('open');
 
   // Simulate payment processing
   setTimeout(() => {
@@ -538,6 +634,7 @@ async function completeOrder() {
     customerName: customerInfo.name,
     customerPhone: customerInfo.phone,
     orderType: orderType,
+    paymentMethod: selectedPaymentMethod,
     subtotal: parseFloat(getSubtotal().toFixed(2)),
     tax: parseFloat(getTax().toFixed(2)),
     serviceFee: SERVICE_FEE,
@@ -567,6 +664,13 @@ function renderConfirmation() {
   orderNo.textContent = `Order #${lastOrderNumber || '0000'}`;
   if (confName) confName.textContent = customerInfo.name || 'Guest';
   if (confType) confType.textContent = orderType === 'dine-in' ? 'Dine-in' : 'Takeaway';
+
+  // Show payment method
+  const confPayment = document.getElementById('conf-payment-method');
+  if (confPayment) {
+    const pmNames = { cash: 'Cash', upi: 'UPI', card: 'Card', loyalty: 'Loyalty Points', counter: 'Pay at Counter' };
+    confPayment.textContent = pmNames[selectedPaymentMethod] || 'Cash';
+  }
 
   if (confItems) {
     confItems.innerHTML = cart.map(item => {

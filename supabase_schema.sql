@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS orders (
   customer_name TEXT NOT NULL,
   customer_phone TEXT NOT NULL,
   order_type TEXT NOT NULL CHECK (order_type IN ('dine-in', 'takeaway')),
+  payment_method TEXT DEFAULT 'cash' CHECK (payment_method IN ('cash', 'upi', 'card', 'loyalty', 'counter')),
   subtotal NUMERIC(10,2) NOT NULL,
   gst NUMERIC(10,2) NOT NULL,
   service_fee NUMERIC(10,2) DEFAULT 30.00,
