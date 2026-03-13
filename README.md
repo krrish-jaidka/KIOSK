@@ -1,18 +1,3 @@
-<div align="center">
-  <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&q=80&w=200&h=200" alt="The Digital Grill Logo" width="120" style="border-radius: 50%;">
-  <h1>🍔 The Digital Grill</h1>
-  <p><strong>A Modern, Self-Service Restaurant Ordering Kiosk Website</strong></p>
-  
-  <p>
-    <a href="#features">Features</a> •
-    <a href="#tech-stack">Tech Stack</a> •
-    <a href="#getting-started">Getting Started</a> •
-    <a href="#folder-structure">Folder Structure</a>
-  </p>
-</div>
-
----
-
 ## 📖 Overview
 
 **The Digital Grill** is a lightning-fast, highly interactive Single Page Application (SPA) designed to replicate the sleek, frictionless touchscreen kiosks used in modern fast-casual restaurants (like McDonald's or Taco Bell).
