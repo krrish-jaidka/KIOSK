@@ -55,23 +55,55 @@ async function saveOrderToSupabase(orderData) {
   }
 
   try {
-    // 1. Insert the order
-    const { data: order, error: orderError } = await supabaseClient
+    // Build full payload (includes new columns that require ALTER TABLE migration)
+    const fullPayload = {
+      order_number: orderData.orderNumber,
+      customer_name: orderData.customerName,
+      customer_phone: orderData.customerPhone,
+      order_type: orderData.orderType,
+      subtotal: orderData.subtotal,
+      tax: orderData.tax,
+      service_fee: orderData.serviceFee,
+      total: orderData.total,
+      status: 'confirmed',
+      // New columns (need ALTER TABLE migration)
+      payment_method: orderData.paymentMethod || 'cash',
+      payment_details: orderData.paymentDetails,
+      discount_code: orderData.discountCode,
+      discount_amount: orderData.discountAmount
+    };
+
+    // Core-only payload — ONLY columns confirmed to exist in the DB
+    const corePayload = {
+      order_number: orderData.orderNumber,
+      customer_name: orderData.customerName,
+      customer_phone: orderData.customerPhone,
+      order_type: orderData.orderType,
+      subtotal: orderData.subtotal,
+      tax: orderData.tax,
+      service_fee: orderData.serviceFee,
+      total: orderData.total,
+      status: 'confirmed'
+    };
+
+    // 1. Try inserting with all fields first
+    let { data: order, error: orderError } = await supabaseClient
       .from('orders')
-      .insert({
-        order_number: orderData.orderNumber,
-        customer_name: orderData.customerName,
-        customer_phone: orderData.customerPhone,
-        order_type: orderData.orderType,
-        payment_method: orderData.paymentMethod || 'cash',
-        subtotal: orderData.subtotal,
-        gst: orderData.tax,
-        service_fee: orderData.serviceFee,
-        total: orderData.total,
-        status: 'confirmed'
-      })
+      .insert(fullPayload)
       .select()
       .single();
+
+    // If it failed because of missing columns, retry with core fields only
+    if (orderError && orderError.message && orderError.message.includes('column')) {
+      console.warn('⚠️ Some columns missing in DB, saving with core fields only. Run the ALTER TABLE migration for full data.');
+      const retryResult = await supabaseClient
+        .from('orders')
+        .insert(corePayload)
+        .select()
+        .single();
+      order = retryResult.data;
+      orderError = retryResult.error;
+    }
 
     if (orderError) {
       console.error('Error saving order:', orderError.message);
@@ -90,9 +122,25 @@ async function saveOrderToSupabase(orderData) {
       line_total: (item.price + (item.selectedCustomizations || []).reduce((s, c) => s + c.price, 0)) * item.quantity
     }));
 
-    const { error: itemsError } = await supabaseClient
+    let { error: itemsError } = await supabaseClient
       .from('order_items')
       .insert(orderItems);
+
+    // If 'note' column missing, retry without it
+    if (itemsError && itemsError.message && itemsError.message.includes('column')) {
+      console.warn('⚠️ order_items column mismatch, retrying with core fields only.');
+      const coreItems = orderData.items.map(item => ({
+        order_id: order.id,
+        menu_item_id: item.id,
+        item_name: item.name,
+        item_price: item.price,
+        quantity: item.quantity,
+        customizations: item.selectedCustomizations || [],
+        line_total: (item.price + (item.selectedCustomizations || []).reduce((s, c) => s + c.price, 0)) * item.quantity
+      }));
+      const retryItems = await supabaseClient.from('order_items').insert(coreItems);
+      itemsError = retryItems.error;
+    }
 
     if (itemsError) {
       console.error('Error saving order items:', itemsError.message);

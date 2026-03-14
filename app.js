@@ -613,6 +613,7 @@ function validateAndConfirm() {
 }
 
 let selectedPaymentMethod = 'cash';
+let paymentDetails = null;
 
 function showPaymentSimulation() {
   const modal = document.getElementById('customize-modal');
@@ -660,11 +661,11 @@ function showPaymentSimulation() {
             </button>
             ${m.id === 'upi' ? `
               <div id="pm-details-upi" class="hidden overflow-hidden transition-all duration-300 px-1 py-1">
-                <input type="text" placeholder="Enter UPI ID (e.g. name@okhdfcbank)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm font-medium">
+                <input type="text" id="upi-input" placeholder="Enter UPI ID (e.g. name@okhdfcbank)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm font-medium">
               </div>
             ` : m.id === 'card' ? `
               <div id="pm-details-card" class="hidden overflow-hidden transition-all duration-300 px-1 py-1 space-y-2">
-                <input type="text" placeholder="Card Number" maxlength="19" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm font-medium">
+                <input type="text" id="card-input" placeholder="Card Number" maxlength="19" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm font-medium">
                 <div class="flex gap-2">
                   <input type="text" placeholder="MM/YY" maxlength="5" class="w-1/2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm font-medium">
                   <input type="password" placeholder="CVV" maxlength="3" class="w-1/2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm font-medium">
@@ -685,6 +686,7 @@ function showPaymentSimulation() {
   `;
 
   selectedPaymentMethod = 'cash';
+  paymentDetails = null;
   modal.classList.add('open');
 }
 
@@ -723,6 +725,14 @@ function selectPaymentMethod(methodId) {
 function confirmPaymentMethod() {
   const modal = document.getElementById('customize-modal');
   const content = document.getElementById('customize-content');
+
+  if (selectedPaymentMethod === 'upi') {
+    paymentDetails = { upiId: document.getElementById('upi-input')?.value || '' };
+  } else if (selectedPaymentMethod === 'card') {
+    paymentDetails = { cardNumber: document.getElementById('card-input')?.value || '' };
+  } else {
+    paymentDetails = null;
+  }
 
   const methodNames = {
     cash: 'Cash',
@@ -781,6 +791,9 @@ async function completeOrder() {
     customerPhone: customerInfo.phone,
     orderType: orderType,
     paymentMethod: selectedPaymentMethod,
+    paymentDetails: paymentDetails,
+    discountCode: currentPromo ? currentPromo.code : null,
+    discountAmount: parseFloat(getDiscount().toFixed(2)),
     subtotal: parseFloat(getSubtotal().toFixed(2)),
     tax: parseFloat(getTax().toFixed(2)),
     serviceFee: SERVICE_FEE,

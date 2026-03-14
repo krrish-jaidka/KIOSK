@@ -26,8 +26,11 @@ CREATE TABLE IF NOT EXISTS orders (
   customer_phone TEXT NOT NULL,
   order_type TEXT NOT NULL CHECK (order_type IN ('dine-in', 'takeaway')),
   payment_method TEXT DEFAULT 'cash' CHECK (payment_method IN ('cash', 'upi', 'card', 'loyalty', 'counter')),
+  payment_details JSONB,
+  discount_code TEXT,
+  discount_amount NUMERIC(10,2) DEFAULT 0.00,
   subtotal NUMERIC(10,2) NOT NULL,
-  gst NUMERIC(10,2) NOT NULL,
+  tax NUMERIC(10,2) NOT NULL,
   service_fee NUMERIC(10,2) DEFAULT 30.00,
   total NUMERIC(10,2) NOT NULL,
   status TEXT DEFAULT 'confirmed' CHECK (status IN ('confirmed', 'preparing', 'ready', 'completed', 'cancelled')),
@@ -128,3 +131,13 @@ ON CONFLICT (id) DO UPDATE SET
   price = EXCLUDED.price,
   image = EXCLUDED.image,
   customizations = EXCLUDED.customizations;
+
+-- ========================================
+-- Schema Updates (Run if updating existing DB)
+-- Paste the lines below into Supabase SQL Editor and click Run
+-- ========================================
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_method TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_details JSONB;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount_code TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount_amount NUMERIC(10,2) DEFAULT 0.00;
+ALTER TABLE order_items ADD COLUMN IF NOT EXISTS note TEXT;
